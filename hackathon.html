@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html >
+<head>
+	<meta charset="utf-8">
+
+	<!--<link href="/static/css/jquery.mobile-1.4.5.min.css" rel="stylesheet" />-->
+	<!--<script type="text/javascript"src="/static/js/jquery.mobile-1.4.5.min.js"></script>-->
+	<!--<script type="text/javascript" src="/static/js/jquery-2.1.4.min.js"></script>-->
+	
+	<script type = "text/javascript">
+
+
+function getData(){
+	var deviceId = $('input[name="device_id"]:checked').val();
+	var result;
+	var decodedData;
+	$("#status2").html(deviceId+"수신 중...");
+
+		$.ajax({
+			type : "GET", // "POST"또는 "GET"을 지정하여 HTTP 통신의 종류를 설정. default는 "GET"
+			url:"/Ajax/getData",
+			dataType:'xml',
+			contentType : 'application/xml ; charset=UTF-8',
+			data:{	url:"http://61.250.21.211:10005/ThingPlug/scls/"+deviceId+"/containers/contCollection/contentInstances/latestOne", 
+					Authorization : "QVAxMDAwNTE3MjpBSzEwMDAwMDkz",
+					data : ''
+				}, // 서버로 전송하는 값
+			 // 기본 text -> 서버에서 반환되는 데이터 형식을 지정. html, xml, text, script, json, jsonp 가 있음
+			success: function (result) {
+				//$("#return_content").text(result.type);
+				//console.log(result);
+				},
+			error: function(request, status, error) {
+				//alert("code:"+request.status+ ", message: "+request.responseText+", error:"+error);
+				result = request.responseText;
+
+				},
+			complete:function(){
+				console.log(result);
+				result = result.replace(/[\r|\n]/g, ''); //행바꿈제거
+				xmlDoc = $.parseXML( result ),
+  				$result = $( xmlDoc ),
+  				$content = $result.find( "content" );
+  				//console.log($content.text());
+  				//alert($content);
+  				if($content){
+  					$("#recData").text(window.atob($content.text()));
+  					$("#status2").html(deviceId+"수신 완료!");
+
+  				}else{
+				//$("#recData").text(window.atob($content.text()));
+  					$("#status2").html("GW수신값 없음"); //미작동
+  				}
+  				
+
+
+				}
+			});
+	}
+
+function clickButtonAlone(){
+		var deviceId = $('input[name="device_id"]:checked').val();
+		
+		var encodedData = window.btoa("o/" + $('input[name="button_id_alone"]:checked').val()+ "/1500") //   o/0/1500
+		
+		$("#status1").html(deviceId+"송신 중...");
+
+		$.ajax({
+			type : "GET", // "POST"또는 "GET"을 지정하여 HTTP 통신의 종류를 설정. default는 "GET"
+			url:"/Ajax/moveServo",
+
+			data:{	url:"http://61.250.21.211:10005/ThingPlug/scls/"+deviceId+"/mgmtObjs/mgmtUser01", 
+					Authorization : "QVAxMDAwNTE3MjpBSzEwMDAwMDkz",
+					data : '<?xml version="1.0" encoding="UTF-8"?><mgmtObj><request>'+encodedData+'</request></mgmtObj>'
+					}, // 서버로 전송하는 값
+			dataType:'', // 기본 text -> 서버에서 반환되는 데이터 형식을 지정. html, xml, text, script, json, jsonp 가 있음
+
+			
+			success: function (result) {
+				//$("#return_content").text(result.type);
+				//console.log(result);
+				},
+			error: function(request, status, error) {
+				//alert("code:"+request.status+ ", message: "+request.responseText+", error:"+error);
+				},
+			complete:function(){
+				//alert(request.responseText);
+				$("#status1").html(deviceId+"송신 완료!");
+
+
+				}
+		
+
+	});
+}
+
+function clickButtonMacro(){
+		var deviceId = $('input[name="device_id"]:checked').val();
+		
+		var encodedData = window.btoa("o/" + $("#macroVal").text() ); //   o/0/1500
+		
+		$("#status3").html(deviceId+"송신 중...");
+
+		$.ajax({
+			type : "GET", // "POST"또는 "GET"을 지정하여 HTTP 통신의 종류를 설정. default는 "GET"
+			url:"/Ajax/moveServo",
+
+			data:{	url:"http://61.250.21.211:10005/ThingPlug/scls/"+deviceId+"/mgmtObjs/mgmtUser01", 
+					Authorization : "QVAxMDAwNTE3MjpBSzEwMDAwMDkz",
+					data : '<?xml version="1.0" encoding="UTF-8"?><mgmtObj><request>'+encodedData+'</request></mgmtObj>'
+					}, // 서버로 전송하는 값
+			dataType:'', // 기본 text -> 서버에서 반환되는 데이터 형식을 지정. html, xml, text, script, json, jsonp 가 있음
+
+			
+			success: function (result) {
+				//$("#return_content").text(result.type);
+				//console.log(result);
+				},
+			error: function(request, status, error) {
+      				//alert("code:"+request.status+ ", message: "+request.responseText+", error:"+error);
+				},
+      			complete:function(){
+      				//alert(request.responseText);
+				$("#status3").html(deviceId+"송신 완료!");
+				}
+	});
+}
+function macroValPlus(){
+	$("#macroVal").append("/"+$("#button_id_macro").val()+"/"+$("#delay_time_macro").val());
+}
+function macroValDel(){
+$("#macroVal").text("");	
+}
+
+function clickButtonSet(){
+		var deviceId = $('input[name="device_id"]:checked').val();
+		
+		var encodedData = window.btoa("o/" + $("#setVal").text() ); //   o/0/1500
+		
+		$("#status4").html(deviceId+"송신 중...");
+
+		$.ajax({
+			type : "GET", // "POST"또는 "GET"을 지정하여 HTTP 통신의 종류를 설정. default는 "GET"
+			url:"/Ajax/moveServo",
+
+			data:{	url:"http://61.250.21.211:10005/ThingPlug/scls/"+deviceId+"/mgmtObjs/mgmtUser01", 
+					Authorization : "QVAxMDAwNTE3MjpBSzEwMDAwMDkz",
+					data : '<?xml version="1.0" encoding="UTF-8"?><mgmtObj><request>'+encodedData+'</request></mgmtObj>'
+					}, // 서버로 전송하는 값
+			dataType:'', // 기본 text -> 서버에서 반환되는 데이터 형식을 지정. html, xml, text, script, json, jsonp 가 있음
+
+			
+			success: function (result) {
+				//$("#return_content").text(result.type);
+				//console.log(result);
+				},
+			error: function(request, status, error) {
+      				//alert("code:"+request.status+ ", message: "+request.responseText+", error:"+error);
+				},
+      			complete:function(){
+      				//alert(request.responseText);
+				$("#status4").html(deviceId+"송신 완료!");
+				}
+	});
+}
+function setValPlus(){
+	$("#setVal").append("/"+$("#button_id_set").val()+"/u/"+$("#alarm_set").val());
+}
+function setValDel(){
+$("#setVal").text("");	
+}
+	
+
+	</script>
+
+
+
+</head>
+<body>
+<h1>14조 T-hackathon팀 UNIBUTTON 개발노트</h1>
+<br>
+<p>[Device01] {SCL-ID} = SC10007182  {MAC-addr} =  98f1706ae5f7</p>
+<p>[Device02] {SCL-ID} = SC10007189  {MAC-addr} =  98f1706802cb</p> 
+<br>
+<input type="radio" name="device_id" value="SC10007182"checked="checked" >[Device01]
+<input type="radio" name="device_id" value="SC10007189" >[Device02]
+<h2>서보모터 단일 클릭</h2>
+<input type="radio" name="button_id_alone" value="0" >Button00
+<input type="radio" name="button_id_alone" value="1" >Button01
+<input type="radio" name="button_id_alone" value="2" >Button02
+<form action  = "javascript:clickButtonAlone()" >
+<input type = "submit" value = "제어"/>&nbsp;&nbsp;<a id = "status1"></a>
+
+<h2>서보모터 매크로 클릭</h2>
+
+
+
+
+버튼번호<input id = "button_id_macro" type = "text" value = ""/><br>
+공백시간<input id = "delay_time_macro" type = "text" value = ""/><br>
+<input type = "button" value = "추가" onclick="macroValPlus()" />&nbsp;<input type = "button" value = "초기화" onclick="macroValDel()" />&nbsp;&nbsp;
+
+<br><br>
+<a>전송코드 :o</a><a id = "macroVal"></a><br><input type = "button" value = "전송" onclick="clickButtonMacro()" />
+<a id = "status3"></a>
+
+<br><br>
+
+<h2>버튼 알람설정</h2>
+
+<a>센서타입: c(알람)</a><h6>*온습감지->t, 빛감지(ex)->l 알람->c</h6>
+버튼번호<input id = "button_id_set" type = "text" value = ""/><br>
+알람시간<input id = "alarm_set" type = "text" value = ""/><br>
+<input type = "button" value = "추가" onclick="setValPlus()" />&nbsp;<input type = "button" value = "초기화" onclick="setValDel()" />&nbsp;&nbsp;
+
+<br><br>
+<a>전송코드 :s/c</a><a id = "setVal"></a><br>
+<input type = "button" value = "전송" onclick="clickButtonMacro()" />
+<a id = "status4"></a>
+
+<br><br>
+
+<h2>버튼 설정(미구현)</h2>
+
+센서타입<input id = "sensor_type_set" type = "text" value = ""/><a>*온습감지->t, 빛감지(ex)->l 시간->c</a>><br>
+버튼번호<input id = "button_id_set" type = "text" value = ""/><br>
+버튼번호<input id = "button_id_set" type = "text" value = ""/><br>
+<input type = "button" value = "추가" onclick="macroValPlus()" />&nbsp;<input type = "button" value = "초기화" onclick="macroValDel()" />&nbsp;&nbsp;
+
+<br><br>
+<a>전송코드 :s</a><a id = "setVal"></a><br>
+<input type = "button" value = "전송" onclick="clickButtonMacro()" />
+<a id = "status5"></a>
+
+<br><br>
+
+
+<h2>GW 최신값 받아오기</h2>
+<a>수신값 :</a><a id = "recData">없음</a><br><br>
+<input type = "button" value="수신" onclick = "getData()"/>&nbsp;&nbsp;<a id = "status2">&nbsp;</a>
+<br>
+<h2>API 커스터마이징</h2>
+
+<h1>원격 스위칭(UNIBUTTON) 매크로API 정의서 - 2015.07.29</h1>
+
+<h2>스위칭 방식검토</h2>
+<ul>
+<li><p>똑딱이스위치(on/off 구분 불가한 스위치)</p></li>
+<li><p>선풍기스위치(on시 특정 스위치/off시 특정 스위치 외의 스위치)</p></li>
+<li><p>형광등스위치(on/off시 각도가 다르고 구분가능한 스위치)</p></li>
+</ul>
+
+
+<h2>매크로 제어 API - 서버측</h2>
+
+<h3>설명</h3>
+<p>REQUEST 태그 안에 들어가는 단문의 split 가능한 메세지</p><br>
+<h3>구조 예시</h3>
+<a> 
+{제어분류} : 디바이스초기세팅->i, 디바이스세팅->s, 스위치제어->o<br>
+{센서타입} : 온습감지->t, 빛감지(ex)->l 시간->c<br>
+{스위치타입} : 똑딱이스위치->1, 선풍기스위치->2, 형광등스위치->3<br>
+{조건1세팅} : 이상->u, 이하->d, default:OFF<br>
+{조건2세팅} : 인식 가능한 정수<br>
+{스위치ID} : mbed에 연결된 스위치의 ID(0,1,2,3)<br>
+{공백시간} : 매크로작동시 작동간의 공백(millis단위)<br>
+<ul>
+<li><p>디바이스 초기세팅 	: {제어분류:i}/{센서타입}/{스위치ID}/{스위치타입}/{스위치ID}/{스위치타입}/{스위치ID}/{스위치타입}.... </p></li>
+<li><p>디바이스 조건세팅 	: {제어분류:s}/{센서타입}/{스위치ID}/{조건1세팅}/{조건2세팅}/{스위치ID}/{조건1세팅}/{조건2세팅} </p></li>
+<li><p>스위치 제어 		: {제어분류:o}/{스위치ID}/{공백시간}/{스위치ID}/{공백시간}......</p></li>
+</ul>
+</a>
+<h3>사용 예시</h3>
+<ul>
+<li><p>디바이스 초기세팅 	: {request}i/t/0/b/1/b/2/b/3/b{/request}	<- 	이 디바이스는 온도센서를 사용하고 0,1,2,3번 스위치 모두 선풍기스위치방식이다.</p></li>
+<li><p>디바이스 세팅 		: {request}s/t/0/d/20/3/u/27{/request}  	<- 	이 디바이스는 온도센서를 사용하고 27도이하-> 스위치0을 켜고 27도이상->스위치3켬</p></li>
+<li><p>스위치 제어 		: {request}o/1/500/2/300/2/300{/request}	<- 	스위치를 작동합니다. 1번스위치작동->500ms->2번->300ms->2번->300ms 	</p></li>
+<br>
+<p>on/off를 구분하지않아도되는 스위치타입이 있는반면, 구분해야만하는 스위치도 있어 고민중 </p>
+</ul>
+
+
+<h2>매크로 제어 API - mbed측</h2>
+<p>로직/기능 : REQUEST 태그 안의 메세지 split -> 배열저장 ->  API명세대로 실행</p>
+
+
+
+<h2>ex1. 선풍기</h2>
+<p>설정값 : OFF->1, LOW->2, MID->3, HIGH->4 </p>
+
+
+<h2>ex1. 4구멀티탭</h2>
+<p>설정값 : MAIN->1, SUB1->2, SUB2->3, SUB3->4, SUB4->5</p>
+
+
+<h2>ex1. 에어컨</h2>
+<p>설정값 : ON/OFF->1, MODE->2, UP->3, DOWN->4 </p>
+
+<h2>ex1. 컴퓨터</h2>
+<p>설정값 : ON/OFF->1</p>
+
+<h2>데이터베이스 모델링</h2>
+
+
+<h2>웹사이트 기본 로직</h2>
+<p>로그인 -> 소유 디바이스 등록/설정 -> 소유 디바이스 확인 -> 매크로 등록/설정 -> 매크로 선택 -> SEND</p>
+
+<h2>문제점</h2>
+</body>
+
+</html>

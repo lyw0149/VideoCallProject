@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>WebRTC</title>
+    <meta name="description" content="Web rtc 화상채팅">
+    <link rel="stylesheet" type="text/css" href="/css/metro.min.css">
+    <!--<link href="/css/metro-icons.min.css" type="text/css" rel="stylesheet">-->
+    <link href="/css/metro-responsive.min.css" type="text/css" rel="stylesheet">
+    <link href="/css/metro-schemes.min.css" rel="stylesheet">
+
+
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script src="/js/metro.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+    <style type="text/css">
+        html,
+        body {
+            height: 100%;
+        }
+        
+        .video01 {
+            position: fixed;
+            z-index: 10;
+            width: 50%;
+        }
+        
+        #bar {
+            z-index: 0;
+        }
+        
+        .page-content {
+            padding-top: 3.125rem;
+            min-height: 100%;
+            height: 100%;
+        }
+        
+        #header {
+            height: 7%;
+        }
+        
+        #footer {
+            z-index: 0;
+        }
+        
+        #LOGO {
+            color: white;
+            font-size: 23px;
+            line-height: 50px;
+            margin-left: 20px;
+        }
+        
+        #roomNum {
+            float: right;
+            color: white;
+            line-height: 50px;
+            margin-right: 20px;
+        }
+        
+        #container {
+            height: 93%;
+            width: 100%;
+            clear: both;
+        }
+        
+        #main {
+            height: 100%;
+            width: 75%;
+            float: left;
+        }
+        
+        #videoarea {
+            background-color: #433e42;
+            height: 90%;
+            width: 100%;
+        }
+        
+        #features {
+            background-color: #25252D;
+            height: 10%;
+            width: 100%;
+            box-sizing: border-box;
+            border-top: 1px solid gray;
+        }
+        
+        #widget {
+            height: 100%;
+            width: 25%;
+            float: right;
+            box-sizing: border-box;
+            
+            background-color: white;
+        }
+        
+        #usersContainer {
+            background-color: white;
+            height: 25%;
+            width: 100%;
+            float: right;
+            box-sizing: border-box;
+            border-bottom: 1px solid gray;
+            overflow-y: scroll;
+        }
+        #userList{
+     
+            padding-left:20px;
+            padding-top:5px;
+            height:30px;
+            vertical-align:middle;
+            
+            
+        }
+        
+        #chat {
+            background-color: white;
+            height: 65%;
+            width: 100%;
+            float: right;
+        }
+        
+        #chatArea {
+            background-color: white;
+            height: 100%;
+            width: 100%;
+            float: right;
+        }
+        
+        #chatAreaText {
+            
+            padding-left: 10px;
+            width: 100%;
+            height: 100%;
+            margin: 0 auto;
+            
+            overflow-y: scroll;
+        }
+        
+        #chatSendArea {
+            width: 25%;
+            /*height: 10%;*/
+            float:right;
+            background-color:black;
+            
+        }
+        
+        #chatSendText {
+            display:inline-block;
+      
+            width: 120%;
+           
+            margin-top:0.2rem ;
+            margin-left:0.4rem ;
+            box-sizing:border-box;
+            
+           
+        }
+        
+        #chatSendButton {
+            width: 20%;
+           
+
+        }
+        
+        #loginForm {
+            width: 25rem;
+            height: 20rem;
+            position: fixed;
+            top: 50%;
+            margin-top: -10rem;
+            left: 50%;
+            margin-left: -12.5rem;
+            background-color: #ffffff;
+            opacity: 0;
+            -webkit-transform: scale(.8);
+            transform: scale(.8);
+            z-index: 99;
+        }
+        
+        #roomForm {
+            width: 50rem;
+            height: 40rem;
+            position: fixed;
+            top: 50%;
+            margin-top: -20rem;
+            left: 50%;
+            margin-left: -25rem;
+            background-color: #ffffff;
+            opacity: 0;
+            -webkit-transform: scale(.8);
+            transform: scale(.8);
+            z-index: 98;
+        }
+        
+        .ring-center{
+            margin:0 auto;
+             margin-top:1rem;
+            margin-bottom:2rem;
+            
+            
+        }
+        
+        #backLayer {
+            opacity: 0.9;
+            display: none;
+            background-color: black;
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            z-index: 95;
+        }
+        
+        .divbar {
+            background-color: black;
+            line-height: 25px;
+            margin: 0px auto;
+            padding-left: 20px;
+            color: white;
+        }
+        
+        #msgBody {
+            margin: 0px;
+            width: 100%;
+            margin-bottom: 5px;
+            font-size: 15px;
+            display: inline-block;
+        }
+        
+        #msgFrom {
+            margin: 0px;
+            width: 100%;
+            font-size: 12px;
+            display: inline-block;
+        }
+        
+        #roomList {
+            height: 30rem;
+            background-color: white;
+        }
+        .area{
+            width:50%;
+            height:33.333333%;
+            background-color:white;
+            float:left;
+            box-sizing:border-box;
+            border : 1px solid gray;
+            
+            
+        }
+    </style>
+
+    
+</head>
+
+<body class="bg-steel">
+    <!--잠금화면-->
+    <div id="backLayer"></div>
+    
+    <!--헤더고정바-->
+    <div id="bar" class="app-bar fixed-top darcula" data-role="appbar">
+        <a class="app-bar-element branding">Hongik WebRTC - 심심한 프로그래머들의 모임</a>
+        <span class="app-bar-divider"></span>
+    </div>
+    <!--푸터고정바-->
+    <div id="footer" class="app-bar fixed-bottom darcula" data-role="appbar">
+        <!--<div id="chatSendArea" class="input-control text place-right" data-role="input">-->
+        <!--    <a class="app-bar-element place-right" onclick="doDisconnect();">나가기</a>-->
+        <!--    <input type="text" class = "place-right" id="chatSendText" onkeypress="onTestChange();" />-->
+            <!--<button id="chatSendButton" onclick="sendMsg();" class="button">전송</button>-->
+        <!--</div>-->
+        <span class="app-bar-divider"></span>
+        <a  class="app-bar-element" onclick="frame();">시작</a>
+        
+        <div id = 'chatSendArea'>
+            <a id ="chatSendButton" class="app-bar-element place-right" onclick="sendMsg();">전송</a>
+            <div class="input-control text">
+                <input id ="chatSendText" type="text" placeholder="메세지 입력.." onkeypress="onEnterKey(sendMsg);">
+            </div>
+        </div>
+        <a  class="app-bar-element place-right" onclick="doDisconnect();">나가기</a>
+        
+          <span class="app-bar-divider"></span>
+    </div>
+
+    <!--페이지내용-->
+    <div class="page-content">
+        <div class="flex-grid no-responsive-future" style="height: 100%">
+            <div id="main">
+                
+                
+                
+                <video id="myVideo" autoplay controls style="width:50%; display:none;"></video>
+            
+            <div id = "myCanvasArea"class ="area">내 캔버스
+                <canvas  height ="auto" id = "myCanvas"style="height: 100%"></canvas>
+            </div>
+            <!--<div id = "myArea"class ="area">이미지변환-->
+            <!--    <img id="myImg"style="height: 100%">-->
+            <!--</div>-->
+            <div id = "area1"class ="area">0번 공간
+                <img id="img0" style="height: 100%">
+            </div>
+            <div id = "area2"class ="area">1번 공간
+                <img id="img1" style="height: 100%">
+            </div>
+            <div id = "area3"class ="area">2번 공간
+                <img id="img2" style="height: 100%">
+            </div>
+            <div id = "area3"class ="area">3번 공간
+                <img id="img4" style="height: 100%">
+            </div>
+            <div id = "area3"class ="area">4번 공간
+                <img id="img5" style="height: 100%">
+            </div>
+                
+            </div>
+            
+            <div id="widget">
+                <div id="usersContainer">
+                    <h6 id='usersCount' class='divbar'></h6>
+                    <div id="users" class="no-hover listview">
+                        <div class="list no-hover">
+                            <span class="list-title "></span>
+                        </div>
+                    </div>
+                </div>
+                <h6 class='divbar'>채팅</h6>
+                <div id="chat">
+                    <div id='chatArea'>
+                        <div id="chatArea">
+                            <ul id="chatAreaText">
+                            </ul>
+                        </div>
+                        <!--<div id="chatAreaText" class="listview-outlook" data-role="listview">-->
+                        <!--</div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <!--페이지내용의 끝-->
+
+
+        <!--로그인 폼-->
+        <div id="loginForm" class="login-form padding20 block-shadow">
+            <h1 class="text-light">WebRTC 로그인</h1>
+            <hr class="thin" />
+            <br />
+            <div class="input-control text full-size" data-role="input">
+                <label for="user_login">닉네임</label>
+                <input type="text" name="user_login" id="nickname" onkeypress="onEnterKey(doConnect);">
+                <button class="button helper-button clear"><span class="mif-cross"></span></button>
+            </div>
+            <br />
+            <br />
+            <div class="input-control password full-size" data-role="input">
+                <label for="user_password">패스워드(필요없음)</label>
+                <input type="password" name="user_password" id="user_password">
+                <button class="button helper-button reveal"><span class="mif-looks"></span></button>
+            </div>
+            <br />
+            <br />
+            <div class="form-actions">
+                <button type="button inline-block" onclick="doConnect();" class="button primary">로그인</button>
+                <!--<button type="button" class="button link">취소</button>-->
+            </div>
+        </div>
+        <!--로그인 폼의 끝-->
+
+        <!--채팅방 목록 폼-->
+        <div id="roomForm" class="login-form padding20 block-shadow">
+            <h1 class="text-light">채팅방 목록</h1>
+            <hr class="thin" />
+            <div id="roomList">
+                <div class="listview">
+                    <div class="list">
+
+                        <span class="list-title">방번호1</span>
+                        <span class="list-title place-right">0/4</span>
+                    </div>
+                    <div class="list">
+
+                        <span class="list-title">방번호2</span>
+                        <span class="list-title place-right">0/4</span>
+                    </div>
+                    <div class="list">
+
+                        <span class="list-title">방번호1</span>
+                        <span class="list-title place-right">0/4</span>
+                    </div>
+                    <div class="list">
+
+                        <span class="list-title">방번호1</span>
+                        <span class="list-title place-right">0/4</span>
+                    </div>
+                </div>
+            </div>
+            <button type="button" onclick="doJoin();" class="button primar">입장(개발중- 그냥 클릭해서 pass)</button>
+        </div>
+        <!--채팅방 목록 폼의 끝-->
+
+       <!--접속 중 다이얼로그-->
+        <div data-role="dialog" id="conDialog">
+            <h1 class="inline-block">&nbsp;&nbsp;접속 중...&nbsp;&nbsp;</h1>
+            <br>
+            <div data-role="preloader" data-type="ring" data-style="dark" class= "ring-center" ></div>
+        </div>
+        
+         <!--alert 다이얼로그-->
+        <div data-role="dialog" data-type = "info" data-close-button="true" id="infoDialog">
+            <div id="dialogInner" style="margin-left=30px;">
+            <h1 id="infoTitle">알림</h1>
+            <br>
+            <p id="infoMsg">닉네임은 한글자 이상!</p>
+            </div>
+        </div>
+
+
+
+     <script>
+        
+        layerInit();
+
+        var socket = null;
+        var ct;
+        var myNick;
+        var width = $(window).width();
+        var height = $(window).height();
+        
+        
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   
+        //ui 관련함수
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        $(document).ready(function() {
+
+            layerInit();
+            showForm("loginForm");
+            claerWindow();
+            startRTC();
+        });
+
+        $(window).resize(function() {
+
+            var width = $(window).width();
+            var height = $(window).height();
+            $("#backLayer").width(width).height(height);
+        });
+        
+        function validiator(id){
+            
+        
+        }
+
+        function showForm(id) {
+            $(function() {
+                var form = $("#" + id);
+
+                form.css({
+                    opacity: 1,
+                    "-webkit-transform": "scale(1)",
+                    "transform": "scale(1)",
+                    "-webkit-transition": ".5s",
+                    "transition": ".5s"
+                });
+            });
+        }
+
+        function hideForm(id) {
+            $(function() {
+                var form = $("#" + id);
+
+                form.css({
+                    opacity: 0,
+                    "-webkit-transform": "scale(1)",
+                    "transform": "scale(1)",
+                    "-webkit-transition": ".5s",
+                    "transition": ".5s"
+                });
+            });
+        }
+
+        function layerInit() {
+            var width = $(window).width();
+            var height = $(window).height();
+
+            $("#backLayer").width(width);
+            $("#backLayer").height(height);
+            $("#backLayer").show();
+        }
+
+        function layerLock() {
+            var width = $(window).width();
+            var height = $(window).height();
+
+            $("#backLayer").width(width);
+            $("#backLayer").height(height);
+            $("#backLayer").fadeTo(1000, 0.9);
+        }
+
+        function layerUnlock() {
+            $("#backLayer").animate({
+                width: width,
+                height: height,
+                opacity: 0
+            }, 1000, function() {
+                $("#backLayer").hide();
+            });
+
+            $("#backLayer").width(width);
+            $("#backLayer").height(height);
+            $("#backLayer").fadeTo(1000, 0);
+        }
+
+
+        function showDialog(id) { //특정 다이얼로그 보이기
+            var dialog = $(id).data('dialog');
+            dialog.open();
+        }
+
+        function hideDialog(id) { //특정 다이얼로그 숨기기
+            var dialog = $(id).data('dialog');
+            dialog.close();
+        }
+        function onEnterKey(callback) {
+            var key = window.event.keyCode;
+            // If the user has pressed enter
+            if (key == 13 && typeof callback === 'function') {
+                callback();
+                return false;
+            }
+            else {
+                return true;
+            }
+
+        }
+        function updateUsers(client) { //usersContainer 업데이트
+            $('#usersCount').text(client.length + '명 접속중');
+            $('#users').text('');
+            for (var i = 0; i < client.length; i++) {
+                $('#users').append('<div id ="userList" class="list"><span class="list-title">' + client[i].nick + '</span></div>');
+            }
+            
+        }
+
+        function claerWindow() { //페이지 초기화
+            $('#usersCount').html('로비');
+            $('#users').text('');
+            $('#chatAreaText').text('')
+
+        }
+        $(function() {
+            $(".video01").draggable();
+        });
+        
+        
+        
+        
+        
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //socket.io 관련함수//
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        var isCapturing = false;
+        function doConnect() { //로그인버튼 클릭
+        
+            if($("#nickname").val()==''){
+                showDialog("#infoDialog");
+                
+            }else{
+            showDialog('#conDialog');
+            if (socket == null) {
+
+                socket = io.connect('https://sfs-leeyangwoo-1.c9.io', {
+                    forceNew: true
+                });
+                console.log("접속")
+                    //응답대기
+                waitRec();
+            }
+                
+            }
+        }
+
+        function doJoin() { //채팅방 입장버튼 클릭
+            hideForm("roomForm");
+            layerUnlock();
+
+        }
+
+        function doDisconnect() {
+            socket.disconnect();
+            socket = null;
+            claerWindow();
+            layerLock();
+            showForm("loginForm");
+        }
+        
+
+        function sendMsg() {
+            console.log("엔터키 입력");
+            socket.emit('fromclient', {
+                msg: $('#chatSendText').val(),
+                nick: myNick
+            });
+            $('#chatSendText').val('');
+        }
+
+        function waitRec() { //서버로부터 응답대기 함수 
+            socket.on('toclient', function(data) {
+                console.log(data.msg);
+                $('#chatAreaText').append(
+                    '<li>' + '<p id = "msgFrom"><b>' +
+                    data.nick +
+                    '</b> &nbsp; 님의 말: </p>' + '<p id = "msgBody">' + data.msg + ' </p>' + ' </li>');
+                $("#chatAreaText").scrollTop($("#chatAreaText")[0].scrollHeight);
+                document.body.focus();
+            });
+
+            socket.on('conSuccess', function(data) { //내가 접속에 성공함
+                socket.emit('joinProcess', {
+                    nick: $('#nickname').val(),
+                });
+                //$('#chatAreaText').append('접속 성공<BR>');
+            });
+
+            socket.on('joinSuccess', function(data) { //joinProcess 성공함 화상채팅 프로세스의 시작
+                myNick = data.nick;
+                ct = data.ct;
+                hideDialog('#conDialog');
+                hideForm("loginForm");
+                showForm("roomForm");
+                updateUsers(ct);
+                
+                if(!isCapturing){
+                    setInterval(doCap,100);
+                    isCapturing=true;
+                    
+                }
+                
+                
+                
+                
+                
+                
+                //$('#chatAreaText').append('접속 성공<BR>');
+            });
+
+            // 2015-08-04 11:48 
+            // 접속자 수 관리 부분 추가
+            socket.on('personJoin', function(data) { //누군가가 접속함 
+                updateUsers(data.ct);
+                $('#chatAreaText').append(data.nick + '(이)가 대화에 참여<BR>');
+            });
+            // 2015-08-04 13:05 
+            // 접속자 수 및 누가 채팅방 나갔는지 출력
+            socket.on('personOut', function(data) {
+                $('#chatAreaText').append(data.nick + '(이)가 채팅방을 나갔습니다.<BR>');
+                updateUsers(data.ct);
+                img[0].src="";
+                img[1].src="";
+                img[2].src="";
+                img[3].src="";
+                img[4].src="";
+                
+            });
+            // 2015-08-04 11:48 
+            // 소켓 종료
+            //doDisconnect();
+            socket.on('URLtoC', function(data) {
+                
+              //  console.log("url  개수"+data.URL.length);
+                for(var i =0; i<data.URL.length;i++){
+                    if(data.URL!=null){
+                        img[i].src = data.URL[i];
+                        
+                    }
+                    
+               //     console.log("이미지 받음: " + i);
+                    
+                }
+                
+                
+                
+                
+                
+            });
+            
+            
+
+        } //waitRec() 대기함수의 끝
+        function sendImg(){
+            
+            socket.emit('URLfromC', {
+                URL: myDataURL
+                });
+                
+                //console.log('이미지 전송');
+                
+        }
+        function doCap() {
+            myCtx.drawImage(myVideo, 0, 0);
+            myDataURL  = myCanvas.toDataURL("image/jpeg", 0.15);
+           // console.log('캡처완료');
+            
+             socket.emit('URLfromC', {
+                URL: myDataURL
+                });
+            console.log('이미지 전송');
+           // sendImg();
+        }
+        
+        
+        
+        //////////////////////////////////////////////////////////////////////////////////////////
+        //webRTC 관련함수
+        /////////////////////////////////////////////////////////////////////////////////////////
+        var myImg=document.getElementById("myImg");
+        var img =[];
+        img[0]=document.getElementById("img0");
+        img[1]=document.getElementById("img1");
+        img[2]=document.getElementById("img2");
+        img[3]=document.getElementById("img3");
+        img[4]=document.getElementById("img4");
+        var myDataURL;
+        
+        var myVideo = document.getElementById('myVideo');
+        var myCanvas = document.getElementById('myCanvas');
+        var myCtx = myCanvas.getContext('2d');
+        
+        function startRTC() {
+            
+            
+            var onFailSoHard = function(e) {//에러처리
+            console.log('Rejected!', e);
+            };
+            //크로스브라우징 지원
+            window.URL = window.URL || window.webkitURL;
+
+            navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+            //지원한다면..
+            if (navigator.getUserMedia) {
+                navigator.getUserMedia({
+
+                         video:true 
+                      
+                    },
+                    function(stream) {
+
+                        myVideo.src = window.URL.createObjectURL(stream);
+                        console.log('rtc시작');
+                    },
+                    onFailSoHard);
+            }
+            else { //안한다면
+                alert('getUserMedia() is not supported in your browser');
+            }
+            myVideo.addEventListener('loadedmetadata', function() { //비디오준비가 완료되면 실행되는 코드
+                myCanvas.width = myVideo.videoWidth;
+                myCanvas.height = myVideo.videoHeight;
+                console.log(myVideo.videoWidth + "  " + myVideo.videoHeight);
+            });
+            
+            // navigator.mediaDevices = navigator.mediaDevices || ((navigator.mozGetUserMedia || navigator.webkitGetUserMedia) ? {
+            // getUserMedia: function(c) {
+            //          return new Promise(function(y, n) {
+            //           (navigator.mozGetUserMedia ||
+            //             navigator.webkitGetUserMedia).call(navigator, c, y, n);
+            //          });
+            //       }
+            //     } : null);
+                
+            //     if (!navigator.mediaDevices) {
+            //       console.log("getUserMedia() not supported.");
+            //       return;
+            //     }
+                
+            //     // Prefer camera resolution nearest to 1280x720.
+                
+            //     var constraints = { audio: true, video:true};
+                
+            //     navigator.mediaDevices.getUserMedia(constraints)
+            //     .then(function(stream) {
+                  
+            //       myVideo.src = window.URL.createObjectURL(stream);
+            //       myVideo.onloadedmetadata = function(e) {
+            //         myVideo.play();
+            //       };
+            //     })
+            //     .catch(function(err) {
+            //       console.log(err.name + ": " + err.message);
+            //     });
+        }
+
+        
+
+        
+            
+            
+            
+       
+        
+        
+    </script>
+
+</body>
+
+</html>

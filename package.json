@@ -1,0 +1,30 @@
+{
+  "name": "VideoCall",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "async": "^0.2.10",
+    "express": "^4.14.0",
+    "fs": "0.0.1-security",
+    "http": "0.0.0",
+    "nodemon": "^1.4.0",
+    "path": "^0.12.7",
+    "socket.io": "^1.3.6",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lyw0149/VideoCall.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lyw0149/VideoCall/issues"
+  },
+  "homepage": "https://github.com/lyw0149/VideoCall#readme"
+}
